@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dpfl"
+version = "1.0.0"
+description = "Sample-level Differential Privacy with Opacus in Federated Learning with Flower"
+
+dependencies = [
+    "flwr[simulation]>=1.12.0",
+    "flwr-datasets[vision]>=0.3.0",
+    "torch==2.1.1",
+    "torchvision==0.16.1",
+    "opacus==v1.4.1",
+    "medmnist==3.0.1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
+[tool.flwr.app]
+publisher = "mohres"
+
+[tool.flwr.app.components]
+serverapp = "opacus_fl.server_app:app"
+clientapp = "opacus_fl.client_app:app"
+
+[tool.flwr.app.config]
+num-server-rounds = 2
+target-delta = 1e-5
+max-grad-norm = 1.0
+fraction-fit = 0.5
+local-epochs = 1
+
+[tool.flwr.federations]
+default = "local-simulation"
+
+[tool.flwr.federations.local-simulation]
+options.num-supernodes = 2
+options.backend.client-resources.num-cpus = 4
+options.backend.client-resources.num-gpus = 1.0
