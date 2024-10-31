@@ -1,4 +1,3 @@
-import logging
 import warnings
 
 import torch
@@ -6,7 +5,15 @@ from flwr.client import ClientApp, NumPyClient
 from flwr.common import Context
 from opacus import PrivacyEngine
 
-from src.task import CustomResNet, get_weights, load_data, set_weights, test, train
+from src.task import (
+    CustomResNet,
+    get_dataset_name,
+    get_weights,
+    load_data,
+    set_weights,
+    test,
+    train,
+)
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -74,7 +81,7 @@ def client_fn(context: Context):
     noise_multiplier = 1.0 if partition_id % 2 == 0 else 1.5
 
     task, train_loader, test_loader, labels, in_channels = load_data(
-        partition_id, context.node_config["num-partitions"], "bloodmnist"
+        partition_id, context.node_config["num-partitions"], get_dataset_name()
     )
     return FlowerClient(
         train_loader,

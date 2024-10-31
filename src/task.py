@@ -3,14 +3,14 @@ from pathlib import Path
 
 import medmnist
 import numpy as np
+import toml
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from flwr_datasets import FederatedDataset
-from flwr_datasets.partitioner import IidPartitioner
-from torch.utils.data import DataLoader, Subset, TensorDataset, random_split
+from torch.utils.data import DataLoader, Subset, random_split
 from torchvision.transforms import Compose, Normalize, ToTensor
 from tqdm import tqdm
+
+configs = toml.load("pyproject.toml")
 
 # Global variable to store federated datasets
 fds = {}
@@ -355,6 +355,10 @@ def eval(net, test_loader, task="multi-class"):
             correct += (torch.max(outputs.data, 1)[1] == labels).sum().item()
     accuracy = correct / len(test_loader.dataset)
     return loss, accuracy
+
+
+def get_dataset_name():
+    return configs["dataset"]["name"]
 
 
 if __name__ == "__main__":

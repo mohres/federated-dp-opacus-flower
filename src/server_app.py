@@ -1,5 +1,3 @@
-"""opacus: Training with Sample-Level Differential Privacy using Opacus Privacy Engine."""
-
 import logging
 from typing import Dict, List, Optional, Tuple
 
@@ -12,6 +10,7 @@ from src.task import (
     CustomResNet,
     eval,
     get_centralized_eval_dataset,
+    get_dataset_name,
     get_weights,
     set_weights,
 )
@@ -31,7 +30,7 @@ def get_evaluate_fn(model):
     """Return an evaluation function for server-side evaluation."""
 
     # Load data and model here to avoid the overhead of doing it in `evaluate` itself
-    task, test_loader = get_centralized_eval_dataset("bloodmnist")
+    task, test_loader = get_centralized_eval_dataset(get_dataset_name())
 
     # The `evaluate` function will be called after every round
     def evaluate(
