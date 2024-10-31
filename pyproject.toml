@@ -23,8 +23,8 @@ packages = ["."]
 publisher = "mohres"
 
 [tool.flwr.app.components]
-serverapp = "opacus_fl.server_app:app"
-clientapp = "opacus_fl.client_app:app"
+serverapp = "src.server_app:app"
+clientapp = "src.client_app:app"
 
 [tool.flwr.app.config]
 num-server-rounds = 2

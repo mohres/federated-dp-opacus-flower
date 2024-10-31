@@ -7,7 +7,8 @@ import torch
 from flwr.common import Context, Metrics, NDArrays, Scalar, ndarrays_to_parameters
 from flwr.server import ServerApp, ServerAppComponents, ServerConfig
 from flwr.server.strategy import FedAvg
-from opacus_fl.task import (
+
+from src.task import (
     CustomResNet,
     eval,
     get_centralized_eval_dataset,

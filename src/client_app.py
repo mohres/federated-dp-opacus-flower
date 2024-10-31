@@ -5,14 +5,8 @@ import torch
 from flwr.client import ClientApp, NumPyClient
 from flwr.common import Context
 from opacus import PrivacyEngine
-from opacus_fl.task import (
-    CustomResNet,
-    get_weights,
-    load_data,
-    set_weights,
-    test,
-    train,
-)
+
+from src.task import CustomResNet, get_weights, load_data, set_weights, test, train
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
