@@ -1,14 +1,18 @@
 import warnings
+from typing import List, Tuple
 
+import numpy as np
 import torch
 from flwr.client import ClientApp, NumPyClient
+from flwr.client.client import Client
 from flwr.common import Context
 from opacus import PrivacyEngine
 
 from src.task import (
     CustomResNet,
+    encrypt_and_serialize_parameters,
+    get_data_size_in_mb,
     get_dataset_name,
-    get_weights,
     load_data,
     set_weights,
     test,
@@ -39,7 +43,7 @@ class FlowerClient(NumPyClient):
 
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    def fit(self, parameters, config):
+    def fit(self, parameters, config) -> Tuple[List[np.ndarray], int, dict]:
         model = self.model
         set_weights(model, parameters)
 
@@ -68,7 +72,18 @@ class FlowerClient(NumPyClient):
         else:
             print("Epsilon value not available.")
 
-        return (get_weights(model), len(self.train_loader.dataset), {})
+        # Encrypt and serialize model parameters
+        updated_parameters = [param.data.cpu() for param in model.parameters()]
+        encrypted_and_serialized_parameters = encrypt_and_serialize_parameters(
+            updated_parameters
+        )
+
+        # Return encrypted parameters, dataset size, and empty metrics
+        return (
+            encrypted_and_serialized_parameters,
+            len(self.train_loader.dataset),
+            {},
+        )
 
     def evaluate(self, parameters, config):
         set_weights(self.model, parameters)
@@ -76,7 +91,7 @@ class FlowerClient(NumPyClient):
         return loss, len(self.test_loader.dataset), {"accuracy": accuracy}
 
 
-def client_fn(context: Context):
+def client_fn(context: Context) -> Client:
     partition_id = context.node_config["partition-id"]
     noise_multiplier = 1.0 if partition_id % 2 == 0 else 1.5
 

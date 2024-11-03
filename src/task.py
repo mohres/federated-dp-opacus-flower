@@ -1,6 +1,10 @@
+import io
+import pickle
 from collections import OrderedDict
 from pathlib import Path
+from typing import List
 
+import crypten
 import medmnist
 import numpy as np
 import toml
@@ -85,7 +89,7 @@ class CustomResNet(nn.Module):
         return x
 
 
-def get_weights(net):
+def get_weights(net) -> List[np.ndarray]:
     return [val.cpu().numpy() for _, val in net.state_dict().items()]
 
 
@@ -280,6 +284,23 @@ def get_centralized_eval_dataset(dataset_name):
     return task, test_dataloader
 
 
+crypten.init()
+
+
+# Encrypt and serialize parameters to byte format
+def encrypt_and_serialize_parameters(parameters):
+    encrypted_params = [crypten.cryptensor(param) for param in parameters]
+    serialized_params = [pickle.dumps(param) for param in encrypted_params]
+    return serialized_params
+
+
+# Deserialize and decrypt parameters on the server side
+def deserialize_and_decrypt_parameters(serialized_parameters):
+    encrypted_params = [pickle.loads(param) for param in serialized_parameters]
+    decrypted_params = [param.get_plain_text() for param in encrypted_params]
+    return decrypted_params
+
+
 def train(
     net,
     train_loader,
@@ -312,38 +333,17 @@ def train(
     return epsilon
 
 
-def test(net, test_loader, device, task="multi-class"):
+def test(net, test_loader, device, task="multi-class", desc="Testing"):
     net.to(device)
     criterion = torch.nn.CrossEntropyLoss()
     correct, loss = 0, 0.0
     with torch.no_grad():
-        for batch in tqdm(test_loader, "Testing"):
+        for batch in tqdm(test_loader, desc):
             data, labels = batch
             data, labels = data.to(device), labels.to(device)
 
             outputs = net(data)
 
-            if task == "multi-label, binary-class":
-                labels = labels.to(torch.float32)
-            else:
-                labels = labels.squeeze().long()
-            if not labels.shape:
-                continue
-
-            loss += criterion(outputs, labels).item()
-            correct += (torch.max(outputs.data, 1)[1] == labels).sum().item()
-    accuracy = correct / len(test_loader.dataset)
-    return loss, accuracy
-
-
-def eval(net, test_loader, task="multi-class"):
-
-    criterion = torch.nn.CrossEntropyLoss()
-    correct, loss = 0, 0.0
-    with torch.no_grad():
-        for batch in tqdm(test_loader, "Evaluating"):
-            data, labels = batch
-            outputs = net(data)
             if task == "multi-label, binary-class":
                 labels = labels.to(torch.float32)
             else:

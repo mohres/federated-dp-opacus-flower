@@ -14,6 +14,8 @@ dependencies = [
     "torchvision==0.16.1",
     "opacus==v1.4.1",
     "medmnist==3.0.1",
+    "crypten==0.4.1",
+    "toml==0.10.2",
 ]
 
 [tool.hatch.build.targets.wheel]
